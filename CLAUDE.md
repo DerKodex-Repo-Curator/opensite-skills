@@ -245,6 +245,45 @@ from context. Each skill has its own `SKILL.md` plus optional `references/`, `te
 | `code-review-security` | Security-focused PR review — PHI leaks, injection, auth, SSRF, unsafe Rust |
 | `epistemic-rigor` | Anti-sycophantic, truth-first analysis — override approval-seeking behavior on hypotheses/decisions |
 
+### AWS (by Amazon Web Services)
+
+> Created and maintained by **Amazon Web Services**, vendored unmodified from the
+> [Agent Toolkit for AWS](https://github.com/aws/agent-toolkit-for-aws) (Apache-2.0; upstream
+> `LICENSE`/`NOTICE` in `third-party-licenses/aws-agent-toolkit-for-aws/`). Don't edit these
+> directories. Report content issues upstream. Run `signing-in-to-aws` first when credentials
+> are missing or expired. Router skills (`aws-database`, `aws-networking`, `aws-serverless`,
+> `aws-messaging-and-streaming`) hand off to specialized AWS skills that load through the AWS
+> MCP server's `aws___retrieve_skill`. The `aws-core` plugin is disabled on this machine
+> because its `aws-core:*` skills duplicate these (and are older). Don't re-enable it without
+> also removing these symlinks.
+
+| Skill | When to Use |
+|-------|-------------|
+| `signing-in-to-aws` | Get AWS CLI/SDK credentials via `aws login`; missing/expired credentials |
+| `launch-with-aws` | Move a vibe-coded (Lovable/Bolt/Replit) or frontend app to AWS; arg = app path or GitHub URL |
+| `aws-blocks` | Full-stack apps with the AWS Blocks Infrastructure-from-Code framework |
+| `aws-cdk` | CDK (TS/Python) authoring, deploy, drift, imports, stack refactors |
+| `aws-cloudformation` | CloudFormation authoring, cfn-lint/cfn-guard validation, failed-stack diagnosis |
+| `aws-deployment` | CodePipeline / CodeBuild / CodeDeploy / CodeArtifact / CodeConnections CI/CD |
+| `aws-compute` | EC2, Auto Scaling groups, AMIs, IMDSv2, Systems Manager fleet ops |
+| `aws-containers` | EKS, ECS, Fargate, ECR, Elastic Beanstalk |
+| `aws-serverless` | Lambda, API Gateway, EventBridge, Step Functions — form-factor routing |
+| `aws-database` | Choose/compare/operate AWS databases (Aurora, DSQL, RDS, DynamoDB, …) |
+| `aws-storage` | Choose/compare S3, EFS, FSx, EBS; storage cost, migration, protection |
+| `aws-messaging-and-streaming` | SQS, SNS, EventBridge, MQ, Kinesis, Firehose patterns |
+| `amazon-bedrock` | Bedrock models, Knowledge Bases, Agents, Guardrails, AgentCore; Bedrock errors |
+| `aws-ai-ml` | SageMaker model selection, fine-tuning, evaluation, deployment, endpoints |
+| `aws-iam` | IAM roles/policies, trust policies, STS, Organizations, condition operators |
+| `aws-auth` | Cognito user/identity pools, Amplify auth, OAuth/OIDC, JWT authorizers |
+| `aws-security` | Security Hub, GuardDuty, Inspector, Macie, Detective, Security Lake |
+| `aws-networking` | Route 53, CloudFront, Transit Gateway, Direct Connect, VPN, WAF, Shield |
+| `aws-observability` | CloudWatch / Omni logs, metrics, alarms, tracing, dashboards, CloudTrail |
+| `aws-billing-and-cost-management` | AWS costs, savings plans/RIs, right-sizing, budgets, CUR, anomalies |
+| `aws-well-architected-review` | Well-Architected Framework review of a real workload |
+| `aws-sdk-python-usage` | Python code using boto3/botocore |
+| `aws-sdk-js-v3-usage` | JS/TS code using `@aws-sdk/*` |
+| `aws-sdk-swift-usage` | Swift code using `aws-sdk-swift` |
+
 ---
 
 ## Model Routing Guide
@@ -297,3 +336,12 @@ CLAUDE_SESSION_COOKIE=...       # from claude.ai cookies: sessionKey
   "Upload a skill"); if the skill exists Claude shows "Replace [name] skill?" — the script
   clicks "Upload and replace". No search or `⋮` menu needed.
   Drop-zone element: `<button>` with text "Drag and drop or click to upload".
+
+<!-- BEGIN tiered-model-routing -->
+## Main-session routing (subagents: ignore this block)
+- Delegate codebase searches and multi-file reading to Explore, and docs, changelog, and API lookups to researcher. Do single-file reads and one-off greps yourself.
+- Once a plan is settled, delegate multi-file edits and edit-test-fix loops to worker with the exact files, the change, and the verifying commands. Make trivial edits yourself.
+- Don't pass model or effort overrides when invoking Explore, researcher, or worker.
+- Consult the advisor before committing to a big plan, when the same error shows up twice, and before marking a long task done.
+- Before marking work done, verify worker results yourself: read the diff and re-run the key check.
+<!-- END tiered-model-routing -->

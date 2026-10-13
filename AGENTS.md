@@ -360,6 +360,47 @@ ships optional `references/`, `templates/`, `examples/`, and `scripts/` resource
 | `code-review-security` | Security-focused PR reviews |
 | `epistemic-rigor` | Anti-sycophantic, truth-first analysis — override approval-seeking behavior on hypotheses/decisions |
 
+### AWS (by Amazon Web Services)
+
+> Created and maintained by **Amazon Web Services**, vendored unmodified from the
+> [Agent Toolkit for AWS](https://github.com/aws/agent-toolkit-for-aws) (Apache-2.0; upstream
+> `LICENSE`/`NOTICE` in `third-party-licenses/aws-agent-toolkit-for-aws/`). Do not edit these
+> skill directories. Report content issues upstream.
+>
+> **Usage notes:** Run `signing-in-to-aws` first if AWS credentials are missing or expired.
+> Router skills (`aws-database`, `aws-networking`, `aws-serverless`, `aws-messaging-and-streaming`)
+> pick a service, then hand off to specialized AWS skills that aren't vendored here. Those load
+> through the AWS MCP server's `aws___retrieve_skill` tool. When the AWS MCP server is
+> available, prefer it for documentation lookups and AWS calls. Every skill also works with
+> the plain AWS CLI.
+
+| Skill | Invoke When |
+|-------|-------------|
+| `signing-in-to-aws` | Getting AWS CLI/SDK credentials via `aws login`; missing or expired credentials |
+| `launch-with-aws` | Moving a vibe-coded app (Lovable/Bolt/Replit) or frontend app to AWS; arg = app path or GitHub URL |
+| `aws-blocks` | Building full-stack apps with the AWS Blocks Infrastructure-from-Code framework |
+| `aws-cdk` | Writing, deploying, or troubleshooting CDK (TypeScript/Python); synth/diff/deploy, imports, drift |
+| `aws-cloudformation` | Writing, validating (cfn-lint, cfn-guard), or debugging CloudFormation templates and failed stacks |
+| `aws-deployment` | CodePipeline, CodeBuild, CodeDeploy, CodeArtifact, CodeConnections CI/CD |
+| `aws-compute` | EC2 instances, Auto Scaling groups, AMIs, IMDSv2, Systems Manager fleet ops |
+| `aws-containers` | EKS, ECS, Fargate, ECR, Elastic Beanstalk deploy/scale/debug |
+| `aws-serverless` | Lambda, API Gateway, EventBridge, Step Functions; choosing serverless form factor |
+| `aws-database` | Choosing, comparing, or operating AWS databases (Aurora, DSQL, RDS, DynamoDB, etc.) |
+| `aws-storage` | Choosing/comparing S3, EFS, FSx, EBS; storage cost, migration, protection |
+| `aws-messaging-and-streaming` | SQS, SNS, EventBridge, MQ, Kinesis, Firehose patterns; routing SES/SMS/push channels |
+| `amazon-bedrock` | Bedrock model invocation, Knowledge Bases, Agents, Guardrails, AgentCore; Bedrock errors |
+| `aws-ai-ml` | SageMaker model selection, fine-tuning, evaluation, deployment, endpoint diagnostics |
+| `aws-iam` | IAM roles/policies, trust policies, STS, Organizations, condition operators |
+| `aws-auth` | Cognito user/identity pools, Amplify auth, OAuth/OIDC, JWT authorizers |
+| `aws-security` | Security Hub, GuardDuty, Inspector, Macie, Detective, Security Lake findings and posture |
+| `aws-networking` | Route 53, CloudFront, Transit Gateway, Direct Connect, VPN, WAF, Shield |
+| `aws-observability` | CloudWatch / CloudWatch Omni logs, metrics, alarms, tracing, dashboards, CloudTrail |
+| `aws-billing-and-cost-management` | AWS bill analysis, savings plans/RIs, right-sizing, budgets, CUR, cost anomalies |
+| `aws-well-architected-review` | Well-Architected Framework review of a real workload (full, quick, pillar, or lens) |
+| `aws-sdk-python-usage` | Python code using boto3/botocore |
+| `aws-sdk-js-v3-usage` | JS/TS code using `@aws-sdk/*` (SDK v3) |
+| `aws-sdk-swift-usage` | Swift code using `aws-sdk-swift` |
+
 ---
 
 ## Model Routing Guide
@@ -428,6 +469,7 @@ opensite-skills/
 ├── scripts/
 │   ├── refresh_skill_support.py
 │   └── validate_skills.py
+├── third-party-licenses/        ← Upstream LICENSE/NOTICE for vendored skills (e.g. AWS)
 ├── AGENTS.md                    ← This file — context for all non-Claude agents
 ├── CLAUDE.md                    ← Claude Code specific context
 ├── PRIVATE_SKILLS.md            ← Private/gitignored skill index (local only, never committed)
@@ -447,6 +489,13 @@ Every skill follows the same portable baseline:
 - `SKILL.md` — standard `name`, `description`, `version`, and `allowed-tools` frontmatter
 - `agents/openai.yaml` — Codex UI metadata and implicit-invocation policy
 - `references/activation.md` — portable activation guide with an explicit invocation example
+
+**Exception:** vendored AWS skills (`amazon-bedrock`, `aws-*`, `launch-with-aws`,
+`signing-in-to-aws`) keep AWS's upstream layout so they can be re-synced from
+`aws/agent-toolkit-for-aws`. Do not hand-edit them or add them to `SKILL_META` in
+`refresh_skill_support.py` (the script only touches skills listed there).
+Validator warnings about missing `compatibility`/`metadata`/`agents/openai.yaml`/`references/activation.md`
+are expected for these skills.
 
 Validate and refresh the full skill set with:
 

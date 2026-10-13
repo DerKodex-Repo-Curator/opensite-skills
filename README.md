@@ -4,7 +4,7 @@
 
 ![Multi Agent Support AI Skills Library](https://octane.cdn.ing/api/v1/images/transform?url=https://cdn.ing/assets/i/r/297562/3b1o40e6650ce6yxbgdcrr83c35e/og.jpg&f=webp)
 
-A growing collection of skills spanning frontend design, Rust and Rails backend engineering, AI/RAG pipeline patterns, database performance, DevOps automation, and more — built to stay in sync across every AI coding agent you run. Because keeping Claude Code, Codex, Copilot, Cursor, Factory/Droid, OpenCode, and cloud platforms all individually up to date sounds like a special kind of hell, this repo ships a full set of scripts that maintain a single source of truth for all of them.
+A growing collection of skills spanning frontend design, Rust and Rails backend engineering, AI/RAG pipeline patterns, database performance, DevOps automation, the official AWS skill set from Amazon Web Services, and more — built to stay in sync across every AI coding agent you run. Because keeping Claude Code, Codex, Copilot, Cursor, Factory/Droid, OpenCode, and cloud platforms all individually up to date sounds like a special kind of hell, this repo ships a full set of scripts that maintain a single source of truth for all of them.
 
 These skills follow the [Agent Skills open standard](https://agentskills.io) and are compatible with:
 
@@ -856,6 +856,119 @@ git push
 | `code-review-security` | Security-focused PR review: PHI/PII data leakage detection, authentication and authorization coverage, SQL injection scanning, secrets/credential exposure, SSRF risk in external HTTP calls, unsafe Rust code auditing, LLM output trust boundaries, and rate limiting on expensive endpoints |
 | `epistemic-rigor` | Forces truth-first, anti-sycophantic behavior — use when proposing a hypothesis, reviewing an architectural decision, or evaluating code design where honest critical analysis matters more than validation. |
 
+### AWS (by Amazon Web Services)
+
+> **Credit:** These 24 skills were created and are maintained by **[Amazon Web Services](https://aws.amazon.com/)**
+> as part of the [Agent Toolkit for AWS](https://github.com/aws/agent-toolkit-for-aws), licensed under
+> [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0). They're vendored here unmodified so the same AWS
+> guidance syncs to every agent this repo supports (Codex, Cursor, Copilot, OpenCode, Goose, and the cloud
+> platforms), not just Claude Code. All credit for their content goes to AWS. Report problems with the skill
+> content upstream, not in this repo. AWS's original `LICENSE` and `NOTICE` are kept in
+> [`third-party-licenses/aws-agent-toolkit-for-aws/`](third-party-licenses/aws-agent-toolkit-for-aws/).
+
+These skills cover the full AWS lifecycle: getting credentials, writing infrastructure as code, picking compute and data
+services, building on Bedrock and SageMaker, securing and observing workloads, and keeping costs down. They're grounded in
+AWS behavior that changed after model training cutoffs, and they correct mistakes agents commonly make. Most of them tell the
+agent to check the live AWS documentation rather than rely on what it remembers.
+
+#### How to use them
+
+1. **Start with credentials.** If an AWS call fails because credentials are missing or expired, `signing-in-to-aws` walks
+   the agent through `aws login`. Most of the other skills assume a working AWS CLI/SDK session.
+2. **Let them trigger automatically.** Each `description` has detailed trigger phrases (service names, error strings such as
+   `ThrottlingException` or `InsufficientInstanceCapacity`, and tasks like "right-size", "cdk deploy", or "Well-Architected
+   review"). You can also invoke one directly, e.g. `/aws-cdk` or `/amazon-bedrock`.
+3. **Router skills hand off to specialized skills.** `aws-database`, `aws-networking`, `aws-serverless`, and
+   `aws-messaging-and-streaming` (and, in places, `aws-compute`, `aws-observability`, `aws-deployment`, and `aws-auth`) pick
+   the right service and then defer to a more specific skill. Many of those targets (e.g.
+   `launching-ec2-instance-with-best-practices`, `setting-up-cloudwatch-observability`, `aws-amplify`, the per-database
+   skills) are **not vendored here**. The agent fetches them on demand through the AWS MCP server's `aws___retrieve_skill`
+   tool. Without that server, the routing guidance still works but the hand-off targets won't load.
+4. **Install the AWS MCP server for the best results.** It adds live documentation search (`search_documentation`,
+   `read_documentation`), on-demand skill retrieval (`retrieve_skill`), authenticated access to AWS APIs, and sandboxed
+   script execution with audit logging. Doc search and skill retrieval don't need AWS credentials. See the
+   [Agent Toolkit for AWS docs](https://docs.aws.amazon.com/agent-toolkit/latest/userguide/understanding-mcp-server-tools.html).
+   Every skill still works with the plain AWS CLI.
+5. **`launch-with-aws` takes an argument:** an app directory path or GitHub URL (e.g. `/launch-with-aws ./my-app`). It ships
+   Python helpers under `scripts/` that handle the auth callback, archiving, and the launch API client.
+
+> **Claude Code users with the official `aws-core` plugin:** that plugin (`/plugin install aws-core@claude-plugins-official`)
+> ships the same skills, namespaced as `aws-core:<skill>`, so having both the plugin and this repo's symlinks makes every
+> AWS skill trigger twice. Choose one source. The copies here are usually the newer ones (as of 2026-10-13, e.g.
+> `amazon-bedrock` v7 here vs v6 in the plugin on AWS's `main`), so the recommended setup is to disable the plugin's
+> skills by setting `"aws-core@claude-plugins-official": false` under `enabledPlugins` in `~/.claude/settings.json`.
+> Disabling it also turns off two other things the plugin provides:
+> - **The AWS MCP server config.** Add `aws-mcp` as a standalone MCP server to keep it.
+> - **AWS's `secret-safety` hook,** which stops the agent from reading secret values out of Secrets Manager. If you rely on
+>   that guardrail, keep the plugin enabled instead and don't symlink the AWS skills into `~/.claude/skills`.
+>
+> The other official AWS plugins (`aws-serverless`, `databases-on-aws`, `deploy-on-aws`, `aws-dev-toolkit`) don't overlap
+> with these skills, and several of them provide the specialized skills that the router skills hand off to.
+
+#### Getting started & app launch
+
+| Skill | Description |
+| ------- | ------------- |
+| `signing-in-to-aws` | Gets AWS credentials for CLI/SDK access through `aws login`. Triggers when credentials are missing, expired, or an operation fails with no configured credentials. |
+| `launch-with-aws` | Moves vibe-coded apps (Lovable, Bolt.new, Replit) and frontend apps (React, Vue, Angular, Next.js, Nuxt, Astro, SvelteKit, Vite, and more) to AWS end to end: analysis, migration, and deployable AWS Blocks infrastructure code. |
+| `aws-blocks` | Builds full-stack apps with AWS Blocks, an Infrastructure-from-Code framework. Covers APIs, Building Block selection (KVStore, DistributedTable, Database, AuthCognito, Realtime, AsyncJob, FileBucket, …), local dev, and deployment. |
+
+#### Infrastructure as Code & CI/CD
+
+| Skill | Description |
+| ------- | ------------- |
+| `aws-cdk` | Writes, deploys, and troubleshoots CDK in TypeScript or Python: stack architecture, construct patterns, bootstrapping, `synth`/`diff`/`deploy`, resource imports, drift, and refactoring stacks without replacing resources. |
+| `aws-cloudformation` | Writes and validates CloudFormation templates with secure defaults. Covers cfn-lint / `cloudformation-validate`, cfn-guard compliance checks, account-aware pre-deploy validation, Express mode, and root-cause diagnosis of failed stacks via events + CloudTrail. |
+| `aws-deployment` | CI/CD with CodePipeline V2, CodeBuild (`buildspec.yml`), CodeDeploy (blue/green, canary, linear), CodeArtifact private registries, and CodeConnections sources (GitHub, GitLab, Bitbucket). |
+
+#### Compute
+
+| Skill | Description |
+| ------- | ------------- |
+| `aws-compute` | EC2 workloads: instance-type selection (Graviton, burstable, GPU), launch templates, Auto Scaling groups (Spot, warm pools, instance refresh), IMDSv2, AMIs, and Systems Manager fleet ops. Diagnoses capacity errors, CPU-credit charges, status-check and SSH failures. |
+| `aws-containers` | EKS, ECS, Fargate, ECR, and Elastic Beanstalk: task definitions, services, ECS Exec/Express Mode/Managed Instances, ECR lifecycle policies, Beanstalk Cluster Mode, scaling, health, and troubleshooting. |
+| `aws-serverless` | Router for Lambda, API Gateway, EventBridge, and Step Functions work. Picks the compute form factor and integration (Step Functions vs Durable Functions, Pipes vs event source mappings, HTTP vs REST API). Owns the shared Lambda references: cold starts, SnapStart, concurrency, throttling. |
+
+#### Data, Storage & Messaging
+
+| Skill | Description |
+| ------- | ------------- |
+| `aws-database` | Router for choosing, comparing, and operating AWS databases: Aurora, DSQL, RDS, DynamoDB, Keyspaces, DocumentDB, Neptune, Timestream, ElastiCache, MemoryDB. Ships knowledge cards with post-training service updates. |
+| `aws-storage` | Picks and compares object, file, and block storage (S3, EFS, FSx, EBS, …) for cost, performance, migration, protection/replication, and workload-specific needs (AI/ML, HPC, vector embeddings, media). |
+| `aws-messaging-and-streaming` | Messaging and streaming patterns across SQS, SNS, EventBridge, Amazon MQ, Kinesis, Firehose, Managed Flink, and MSK. Routes customer-channel work (SES email, SMS/WhatsApp/voice/push) to the right End User Messaging skill. |
+
+#### AI / ML
+
+| Skill | Description |
+| ------- | ------------- |
+| `amazon-bedrock` | Generative AI on Bedrock: Converse/InvokeModel, Knowledge Bases (RAG), Agents, Guardrails, and AgentCore (including Harness migrations and Payments). Also covers model selection, prompt caching, throttling/quota diagnosis, and cost tracking. Includes a `fetch_bedrock_agent.py` helper. |
+| `aws-ai-ml` | SageMaker model lifecycle: base-model selection from JumpStart/Hub, dataset prep, fine-tuning (SFT/DPO/RLVR/RLAIF), evaluation, deployment to SageMaker or Bedrock, inference optimization, endpoint diagnostics, and Managed MLflow. |
+
+#### Identity & Security
+
+| Skill | Description |
+| ------- | ------------- |
+| `aws-iam` | Corrects IAM behaviors agents often get wrong: policy evaluation edge cases, trust-policy gotchas, STS limits, condition-operator safety, confused-deputy protection. Generates baseline policies from source code or a Terraform plan. |
+| `aws-auth` | App user authentication with Cognito (user and identity pools) and Amplify auth libraries: hosted/managed login, MFA, OAuth/OIDC + PKCE, social/SAML federation, token handling, Lambda triggers, and JWT authorizers for API Gateway/ALB. |
+| `aws-security` | Security posture across Security Hub (V2/OCSF and CSPM), GuardDuty, Inspector, Macie, Detective, and Security Lake: findings, failed controls, automation rules, and cross-service configuration. |
+
+#### Networking, Observability, Cost & Architecture Review
+
+| Skill | Description |
+| ------- | ------------- |
+| `aws-networking` | Router for Route 53, CloudFront, Transit Gateway, Direct Connect, Site-to-Site VPN, WAF, and Shield Advanced: design, configuration, choosing between services, and connectivity/traffic-filtering troubleshooting. |
+| `aws-observability` | CloudWatch and CloudWatch Omni: Logs Insights, alarms, EMF/custom metrics, dashboards, X-Ray/ADOT tracing, canaries, CloudTrail, Application Signals, SQL/PromQL over Omni telemetry, and AI-agent quality evaluation from traces. |
+| `aws-billing-and-cost-management` | Cost analysis and savings: budgets, Savings Plans/RI evaluation, Compute Optimizer right-sizing, pricing lookups, CUR queries via Athena, anomaly detection, billing views, and Free Tier monitoring. |
+| `aws-well-architected-review` | Full Well-Architected Framework review of a real workload. Analyzes code, IaC, and configs against every pillar/lens pulled from live AWS docs and produces evidence-backed findings with prioritized remediation. Supports full, quick, pillar-scoped, and lens-specific reviews. |
+
+#### AWS SDKs
+
+| Skill | Description |
+| ------- | ------------- |
+| `aws-sdk-python-usage` | boto3/botocore patterns: clients/resources, sessions and credentials, `ClientError` handling, paginators and waiters, S3 transfers and presigned URLs, DynamoDB operations, and client configuration. |
+| `aws-sdk-js-v3-usage` | AWS SDK for JavaScript v3 (`@aws-sdk/*`) patterns for JS/TS, including schemas, runtime validation, serialization, and code generation. |
+| `aws-sdk-swift-usage` | AWS SDK for Swift (`aws-sdk-swift`) development patterns. |
+
 ---
 
 ## Claude Code–Specific Frontmatter
@@ -879,6 +992,14 @@ Every skill follows the same portable baseline:
 - `agents/openai.yaml` provides Codex UI metadata and implicit-invocation policy.
 - `references/activation.md` gives a portable activation guide plus an explicit invocation example.
 - Complex skills may also ship `templates/`, `examples/`, or `scripts/` when those resources materially improve execution.
+
+**Exception: vendored third-party skills.** The [AWS skills](#aws-by-amazon-web-services) keep AWS's upstream layout
+(`SKILL.md` with `name`/`description`/`version`, plus `references/`, `assets/`, and `scripts/`) so they can be re-synced
+from [aws/agent-toolkit-for-aws](https://github.com/aws/agent-toolkit-for-aws) without merge conflicts. Don't hand-edit
+them or add them to `SKILL_META` in `refresh_skill_support.py`. The script only touches skills listed there, so it already
+leaves them alone. `validate_skills.py` will report that they lack
+`compatibility`, `metadata`, `agents/openai.yaml`, and `references/activation.md`. That's expected. When you re-sync them,
+also refresh `third-party-licenses/aws-agent-toolkit-for-aws/` (`LICENSE`, `NOTICE`, and the commit recorded in its README).
 
 Refresh and validate the structure with:
 
